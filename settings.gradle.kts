@@ -1,16 +1,16 @@
 rootProject.name = System.getProperty("projName")
 
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+	}
 }
 
 dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
+	repositories {
+		mavenCentral()
+	}
 }
 
 include(":KCLI")
