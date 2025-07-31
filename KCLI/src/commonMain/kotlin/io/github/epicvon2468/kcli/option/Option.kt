@@ -1,7 +1,7 @@
-package io.github.angervon2468.kcli.option
+package io.github.epicvon2468.kcli.option
 
-import io.github.angervon2468.kcli.KCLI
-import io.github.angervon2468.kcli.exceptions.UninitialisedOptionException
+import io.github.epicvon2468.kcli.KCLI
+import io.github.epicvon2468.kcli.exceptions.UninitialisedOptionException
 
 import kotlin.reflect.KProperty
 

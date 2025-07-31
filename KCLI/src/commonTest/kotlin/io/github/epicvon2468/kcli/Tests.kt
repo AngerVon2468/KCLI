@@ -1,4 +1,4 @@
-package io.github.angervon2468.kcli
+package io.github.epicvon2468.kcli
 
 import kotlin.test.Test
 

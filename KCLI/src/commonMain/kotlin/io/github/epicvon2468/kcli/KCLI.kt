@@ -1,6 +1,6 @@
-package io.github.angervon2468.kcli
+package io.github.epicvon2468.kcli
 
-import io.github.angervon2468.kcli.option.StringOption
+import io.github.epicvon2468.kcli.option.StringOption
 
 import kotlin.reflect.KProperty
 

@@ -1,4 +1,4 @@
-package io.github.angervon2468.kcli.exceptions
+package io.github.epicvon2468.kcli.exceptions
 
 import kotlin.jvm.JvmOverloads
 
