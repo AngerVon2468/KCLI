@@ -13,9 +13,8 @@ val projVersion: String = System.getProperty("projVersion")
 val projName: String = System.getProperty("projName")
 
 kotlin {
+	// macOS support... never.
 	jvm()
-	macosX64()
-	macosArm64()
 	linuxX64()
 	mingwX64()
 
