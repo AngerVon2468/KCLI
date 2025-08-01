@@ -19,6 +19,12 @@ kotlin {
 	mingwX64()
 
 	sourceSets {
+		this.forEach {
+			it.dependencies {
+				implementation(libs.kotlin.reflect)
+			}
+		}
+
 		commonMain.dependencies { }
 
 		commonTest.dependencies {
@@ -29,6 +35,7 @@ kotlin {
 	targets.withType<KotlinNativeTarget> {
 		binaries {
 			sharedLib()
+			staticLib()
 		}
 		// https://kotlinlang.org/docs/native-objc-interop.html#export-of-kdoc-comments-to-generated-objective-c-headers
 		compilations["main"].compileTaskProvider.configure {

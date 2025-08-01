@@ -7,38 +7,38 @@ import kotlin.reflect.KProperty
 
 // TODO: Nullable support?
 
-interface Option<T : Any?> {
+abstract class Option<T : Any?> {
 
-	@Suppress("PropertyName")
-	var _default: T?
+	private var _default: T? = null
 
-	var value: T?
+	var value: T? = null
 
-	fun transform(input: String): T
+	val shortNames: MutableList<String> = mutableListOf()
+
+	val longNames: MutableList<String> = mutableListOf()
+
+	operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
+
+	abstract fun transform(input: String): T
+
+	fun init(input: String) = this::value.set(this.transform(input))
 
 	fun default(default: T) = this::_default.set(default)
 
 	private fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing =
 		throw UninitialisedOptionException(
 			"Option ${property.name} of KCLI ${thisRef::class.simpleName} wasn't initialised with args," +
-				"and had no default value or a nullable default value."
+				" and had no default value or a nullable default value."
 		)
 
 	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
-		value ?: (_default ?: noInit(thisRef, property))
+		this.value ?: (this._default ?: this.noInit(thisRef, property))
 
 	operator fun provideDelegate(
 		thisRef: KCLI,
 		property: KProperty<*>
 	): Option<T> {
-		thisRef.optionVars += property
+		thisRef.optionVars += property to this
 		return this
 	}
-}
-
-abstract class OptionBase<T : Any?> : Option<T> {
-
-	override var _default: T? = null
-
-	override var value: T? = null
 }
