@@ -24,6 +24,16 @@ class Parser {
 		fun isQuotedValue(str: String): Boolean =
 			(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 		fun exception(): Nothing = throw IllegalStateException("Trailing '=' sign!")
+		fun checkNextIsNotArg(check: String, supplier: () -> Pair<OptionInfo, Int>): Pair<OptionInfo, Int> {
+			return if (check.startsWith('-')) {
+				when {
+					// Numbers can be negative
+					hasNumeric(check) -> supplier()
+					// Next argument
+					else -> exception()
+				}
+			} else if (isQuotedValue(check)) supplier() else exception()
+		}
 
 		// TODO: Cleanup indentation
 		// Name & value
@@ -32,7 +42,12 @@ class Parser {
 			// If it ends on '=', we should try to read the next arg as a value
 			// Otherwise, we can return the split name and value of the current arg
 			return if (noPrefix.indexOf('=') != noPrefix.length) {
-				if (hasNext) OptionInfo(prefixType, noPrefix.substringBeforeLast("="), args[nextIndex]) to nextIndex
+				if (hasNext) {
+					val next = args[nextIndex]
+					return checkNextIsNotArg(next) {
+						OptionInfo(prefixType, noPrefix.substringBeforeLast("="), next) to nextIndex
+					}
+				}
 				else exception()
 			} else OptionInfo(prefixType, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 		} else if (prefixType.isShortName) {
@@ -41,19 +56,9 @@ class Parser {
 			val next = args[nextIndex]
 			if (isNextEquals()) {
 				val nextNext = args[nextNextIndex]
-				fun justNextNext(): Pair<OptionInfo, Int> = OptionInfo(
-					prefixType,
-					noPrefix,
-					nextNext
-				) to nextNextIndex
-				if (nextNext.startsWith('-')) {
-					when {
-						// Numbers can be negative
-						hasNumeric(nextNext) -> return justNextNext()
-						// Next argument
-						else -> exception()
-					}
-				} else if (isQuotedValue(nextNext)) return justNextNext()
+				return checkNextIsNotArg(nextNext) {
+					OptionInfo(prefixType, noPrefix, nextNext) to nextNextIndex
+				}
 			} else if (isNextEqualsAndValue()) return OptionInfo(prefixType, noPrefix, next.substringAfter('=')) to nextIndex
 		}
 		TODO()
