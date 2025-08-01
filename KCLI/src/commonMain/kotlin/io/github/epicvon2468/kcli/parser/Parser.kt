@@ -4,15 +4,58 @@ package io.github.epicvon2468.kcli.parser
  * For an option with name "example" and type Int, the following are valid inputs:
  *
  * `-e1`, `-e 1`, `-e=1`, `-e = 1`,
- * `--example1` `--example 1`, `--example=1`, `--example = 1`
+ *
+ * `--example1` `--example 1`, `--example=1`, `--example= 1`, `--example =1`, `--example = 1`
  */
 class Parser {
 
-	fun getInfo(index: Int, arg: String, args: Array<String>): Pair<OptionInfo, Int> {
+	fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pair<OptionInfo, Int> {
 		val chars = arg.toCharArray()
+		val nextIndex = index + 1
+		val nextNextIndex = nextIndex + 1
+
+		// Prefix info
 		val prefix = chars.takeWhile { it == '-' }.joinToString(separator = "")
 		val prefixType = PrefixType[prefix]
-		prefixType.prefix
+
+		fun isNextEquals(): Boolean = args[nextIndex] == "="
+		fun isNextEqualsAndValue(): Boolean = args[nextIndex].startsWith('=')
+		fun hasNumeric(str: String): Boolean = ('0'..'9').any(str::contains)
+		fun isQuotedValue(str: String): Boolean =
+			(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
+		fun exception(): Nothing = throw IllegalStateException("Trailing '=' sign!")
+
+		// TODO: Cleanup indentation
+		// Name & value
+		val noPrefix = arg.substringAfter(prefix)
+		if ('=' in noPrefix && !prefixType.isShortName) {
+			// If it ends on '=', we should try to read the next arg as a value
+			// Otherwise, we can return the split name and value of the current arg
+			return if (noPrefix.indexOf('=') != noPrefix.length) {
+				if (hasNext) OptionInfo(prefixType, noPrefix.substringBeforeLast("="), args[nextIndex]) to nextIndex
+				else exception()
+			} else OptionInfo(prefixType, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
+		} else if (prefixType.isShortName) {
+
+		} else if (hasNext) {
+			val next = args[nextIndex]
+			if (isNextEquals()) {
+				val nextNext = args[nextNextIndex]
+				fun justNextNext(): Pair<OptionInfo, Int> = OptionInfo(
+					prefixType,
+					noPrefix,
+					nextNext
+				) to nextNextIndex
+				if (nextNext.startsWith('-')) {
+					when {
+						// Numbers can be negative
+						hasNumeric(nextNext) -> return justNextNext()
+						// Next argument
+						else -> exception()
+					}
+				} else if (isQuotedValue(nextNext)) return justNextNext()
+			} else if (isNextEqualsAndValue()) return OptionInfo(prefixType, noPrefix, next.substringAfter('=')) to nextIndex
+		}
 		TODO()
 	}
 }
@@ -23,6 +66,9 @@ enum class PrefixType(val prefix: String) {
 	MINUS_SHORT("-"),
 	MINUS_LONG("--"),
 	;
+
+	val isShortName: Boolean
+		get() = this in SHORT_PREFIX
 
 	companion object {
 
@@ -52,9 +98,7 @@ data class OptionInfo(
 	/**
 	 * @return if the [name] property should be read as a short or long name.
 	 */
-	val isShortName: Boolean
-		get() = this.prefixType == PrefixType.MINUS_SHORT
+	val isShortName: Boolean = this.prefixType.isShortName
 
-	val isFlag: Boolean
-		get() = this.value == null
+	val isFlag: Boolean = this.value == null
 }
