@@ -22,8 +22,11 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 	fun isQuotedValue(str: String): Boolean =
 		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
-	fun checkNextIsNotArg(check: String, supplier: () -> Pair<OptionInfo, Int>): Pair<OptionInfo, Int> =
-		if (isQuotedValue(check) || isNumber(check)) supplier() else exception()
+	fun checkNextIsNotArg(
+		check: String,
+		fail: () -> Pair<OptionInfo, Int>? = { exception() },
+		supplier: () -> Pair<OptionInfo, Int>
+	): Pair<OptionInfo, Int>? = if (isQuotedValue(check) || isNumber(check)) supplier() else fail()
 
 	// TODO: Cleanup indentation
 	// Name & value
@@ -36,22 +39,26 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 			val next = args[nextIndex]
 			return checkNextIsNotArg(next) {
 				OptionInfo(prefixType, noPrefix.substringBeforeLast("="), next) to nextIndex
-			}
+			}!!
 		} else OptionInfo(prefixType, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 	} else if (hasNext) {
 		val next = args[nextIndex]
 		if (isNextEquals()) {
 			val nextNext = args[nextNextIndex]
-			return checkNextIsNotArg(nextNext) {
-				OptionInfo(prefixType, noPrefix, nextNext) to nextNextIndex
-			}
+			return checkNextIsNotArg(nextNext) { OptionInfo(prefixType, noPrefix, nextNext) to nextNextIndex }!!
 		} else if (isNextEqualsAndValue()) return OptionInfo(
 			prefixType,
 			noPrefix,
 			next.substringAfter('=')
 		) to nextIndex
-	}
-	TODO()
+		else return checkNextIsNotArg(
+			next,
+			// Flag
+			fail = { OptionInfo(prefixType, noPrefix, null) to index },
+			// Whitespace separated args
+			supplier = { OptionInfo(prefixType, noPrefix, next) to nextIndex }
+		)!!
+	} else return OptionInfo(prefixType, noPrefix, null) to index // Flag
 }
 
 val NUMBER_MATCHER = Regex("(^-?\\d*\\.?\\d+)")
