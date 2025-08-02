@@ -17,8 +17,9 @@ open class KCLI {
 		var index = 0
 		while (index <= size) {
 			val arg = args[index]
-			val (optionInfo, newIndex) = getInfo(index, arg, args, index < size)
+			val (optionInfo, newIndex) = getInfo(index, arg, args, index + 1 < size)
 			index = newIndex // We want to make sure we're not going over values we already used.
+			println("Name: ${optionInfo.name}")
 			val option = this.optionVars.values.single { optionInfo.name in it }
 			option.init(optionInfo.value)
 			index++

@@ -9,6 +9,7 @@ class Tests {
 		val test = object : KCLI() {
 			val abc: String by this.option()
 		}
+		test.init(arrayOf("--abc=", "\"test\""))
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)
 	}
 

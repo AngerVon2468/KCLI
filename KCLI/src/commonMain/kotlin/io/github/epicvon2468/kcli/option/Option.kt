@@ -37,11 +37,15 @@ abstract class Option<T : Any?> {
 	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
 		this.value ?: (this._default ?: this.noInit(thisRef, property))
 
+	// TODO: This isn't getting called...
 	operator fun provideDelegate(
 		thisRef: KCLI,
 		property: KProperty<*>
 	): Option<T> {
 		thisRef.optionVars += property to this
+		val name = property.name
+		this.longNames += name
+		this.shortNames += name[0].toString()
 		return this
 	}
 }
