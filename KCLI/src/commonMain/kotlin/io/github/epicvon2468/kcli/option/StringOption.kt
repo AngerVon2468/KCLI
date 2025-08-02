@@ -6,5 +6,7 @@ import kotlin.reflect.KProperty
 
 class StringOption(thisRef: KCLI, property: KProperty<*>) : Option<String>(thisRef, property) {
 
-	override fun transform(input: String?): String = input ?: this.invalidInput(input)
+	// TODO: Move this to Parser logic?
+	override fun transform(input: String?): String =
+		input?.removePrefix("\"")?.removeSuffix("\"") ?: this.invalidInput(input)
 }

@@ -11,6 +11,7 @@ class Tests {
 		}
 		test.init(arrayOf("--abc=", "\"test\""))
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)
+		assertEquals("test", test.abc)
 	}
 
 	@Test
