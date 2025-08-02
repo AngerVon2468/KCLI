@@ -18,40 +18,26 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 
 	fun isNextEquals(): Boolean = args[nextIndex] == "="
 	fun isNextEqualsAndValue(): Boolean = args[nextIndex].startsWith('=')
-	fun hasNumeric(str: String): Boolean = ('0'..'9').any(str::contains)
-	fun isNumber(str: String): Boolean {
-		return NUMBER_MATCHER matches str
-	}
+	fun isNumber(str: String): Boolean = NUMBER_MATCHER matches str
 	fun isQuotedValue(str: String): Boolean =
 		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
-	fun exception(): Nothing = throw IllegalStateException("Trailing '=' sign!")
-	fun checkNextIsNotArg(check: String, supplier: () -> Pair<OptionInfo, Int>): Pair<OptionInfo, Int> {
-		return if (check.startsWith('-')) {
-			when {
-				// Numbers can be negative
-				isNumber(check) -> supplier()
-				// Next argument
-				else -> exception()
-			}
-		} else if (isQuotedValue(check) || isNumber(check)) supplier() else exception()
-	}
+	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
+	fun checkNextIsNotArg(check: String, supplier: () -> Pair<OptionInfo, Int>): Pair<OptionInfo, Int> =
+		if (isQuotedValue(check) || isNumber(check)) supplier() else exception()
 
 	// TODO: Cleanup indentation
 	// Name & value
 	val noPrefix = arg.substringAfter(prefix)
-	if ('=' in noPrefix && !prefixType.isShortName) {
+	if ('=' in noPrefix) {
 		// If it ends on '=', we should try to read the next arg as a value
 		// Otherwise, we can return the split name and value of the current arg
 		return if (noPrefix.indexOf('=') != noPrefix.length) {
-			if (hasNext) {
-				val next = args[nextIndex]
-				return checkNextIsNotArg(next) {
-					OptionInfo(prefixType, noPrefix.substringBeforeLast("="), next) to nextIndex
-				}
-			} else exception()
+			if (!hasNext) exception()
+			val next = args[nextIndex]
+			return checkNextIsNotArg(next) {
+				OptionInfo(prefixType, noPrefix.substringBeforeLast("="), next) to nextIndex
+			}
 		} else OptionInfo(prefixType, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
-	} else if (prefixType.isShortName) {
-
 	} else if (hasNext) {
 		val next = args[nextIndex]
 		if (isNextEquals()) {
