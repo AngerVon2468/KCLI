@@ -20,6 +20,7 @@ open class KCLI {
 			val (optionInfo, newIndex) = getInfo(index, arg, args, index < size)
 			index = newIndex // We want to make sure we're not going over values we already used.
 			val option = this.optionVars.values.single { optionInfo.name in it }
+			option.init(optionInfo.value)
 			index++
 		}
 	}

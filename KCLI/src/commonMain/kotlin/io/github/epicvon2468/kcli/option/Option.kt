@@ -19,9 +19,11 @@ abstract class Option<T : Any?> {
 
 	operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
 
-	abstract fun transform(input: String): T
+	fun invalidInput(str: String?): Nothing = throw IllegalStateException("Invalid input: '$str'!")
 
-	fun init(input: String) = this::value.set(this.transform(input))
+	abstract fun transform(input: String?): T
+
+	fun init(input: String?) = this::value.set(this.transform(input))
 
 	fun default(default: T) = this::_default.set(default)
 
