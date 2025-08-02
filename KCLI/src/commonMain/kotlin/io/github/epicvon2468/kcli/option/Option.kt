@@ -8,7 +8,7 @@ import kotlin.reflect.*
 
 // TODO: Nullable support?
 
-abstract class Option<T : Any?> {
+abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 
 	private var _default: T? = null
 
@@ -17,6 +17,13 @@ abstract class Option<T : Any?> {
 	val shortNames: MutableList<String> = mutableListOf()
 
 	val longNames: MutableList<String> = mutableListOf()
+
+	init {
+		thisRef.optionVars += property to this
+		val name = property.name
+		this.longNames += name
+		this.shortNames += name[0].toString()
+	}
 
 	operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
 
@@ -36,32 +43,20 @@ abstract class Option<T : Any?> {
 
 	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
 		this.value ?: (this._default ?: this.noInit(thisRef, property))
-
-	// TODO: This isn't getting called...
-	operator fun provideDelegate(
-		thisRef: KCLI,
-		property: KProperty<*>
-	): Option<T> {
-		thisRef.optionVars += property to this
-		val name = property.name
-		this.longNames += name
-		this.shortNames += name[0].toString()
-		return this
-	}
 }
 
 object OptionProvider {
 
-	val lookup: MutableMap<KType, () -> Option<*>> = WriteOnlyModificationMap(mutableMapOf())
+	val lookup: MutableMap<KType, ((KCLI, KProperty<*>) -> Option<*>)> = WriteOnlyModificationMap(mutableMapOf())
 
 	init {
-		this.lookup += typeOf<String>() to { StringOption() }
+		this.lookup += typeOf<String>() to ::StringOption
 	}
 
 	@Suppress("UNCHECKED_CAST")
 	inline operator fun <reified T> provideDelegate(
 		thisRef: KCLI,
 		property: KProperty<*>
-	): Option<T> = this.lookup[typeOf<T>()]?.invoke() as Option<T>?
+	): Option<T> = this.lookup[typeOf<T>()]?.invoke(thisRef, property) as Option<T>?
 		?: throw NotImplementedError("No option impl found for type ${T::class.simpleName}!")
 }
