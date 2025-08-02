@@ -1,5 +1,6 @@
 package io.github.epicvon2468.kcli.parser
 
+// TODO: Support PowerShell `/` notation?
 /**
  * For an option with name "example" and type Int, the following are valid inputs:
  *
@@ -14,7 +15,6 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 
 	// Prefix info
 	val prefix = chars.takeWhile { it == '-' }.joinToString(separator = "")
-	val prefixType = PrefixType[prefix]
 
 	fun isNextEquals(): Boolean = args[nextIndex] == "="
 	fun isNextEqualsAndValue(): Boolean = args[nextIndex].startsWith('=')
@@ -38,53 +38,30 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 			if (!hasNext) exception()
 			val next = args[nextIndex]
 			return checkNextIsNotArg(next) {
-				OptionInfo(prefixType, noPrefix.substringBeforeLast("="), next) to nextIndex
+				OptionInfo(prefix, noPrefix.substringBeforeLast("="), next) to nextIndex
 			}!!
-		} else OptionInfo(prefixType, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
+		} else OptionInfo(prefix, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 	} else if (hasNext) {
 		val next = args[nextIndex]
 		if (isNextEquals()) {
 			val nextNext = args[nextNextIndex]
-			return checkNextIsNotArg(nextNext) { OptionInfo(prefixType, noPrefix, nextNext) to nextNextIndex }!!
+			return checkNextIsNotArg(nextNext) { OptionInfo(prefix, noPrefix, nextNext) to nextNextIndex }!!
 		} else if (isNextEqualsAndValue()) return OptionInfo(
-			prefixType,
+			prefix,
 			noPrefix,
 			next.substringAfter('=')
 		) to nextIndex
 		else return checkNextIsNotArg(
 			next,
 			// Flag
-			fail = { OptionInfo(prefixType, noPrefix, null) to index },
+			fail = { OptionInfo(prefix, noPrefix, null) to index },
 			// Whitespace separated args
-			supplier = { OptionInfo(prefixType, noPrefix, next) to nextIndex }
+			supplier = { OptionInfo(prefix, noPrefix, next) to nextIndex }
 		)!!
-	} else return OptionInfo(prefixType, noPrefix, null) to index // Flag
+	} else return OptionInfo(prefix, noPrefix, null) to index // Flag
 }
 
 val NUMBER_MATCHER = Regex("(^-?\\d*\\.?\\d+)")
-
-// TODO: Support PowerShell `/` notation?
-enum class PrefixType(val prefix: String) {
-
-	MINUS_SHORT("-"),
-	MINUS_LONG("--"),
-	;
-
-	val isShortName: Boolean
-		get() = this in SHORT_PREFIX
-
-	companion object {
-
-		val SHORT_PREFIX = PrefixType.entries.filter { it.prefix.length == 1 }
-		val LONG_PREFIX = PrefixType.entries.filter { it.prefix.length > 1 }
-
-		operator fun get(prefix: String): PrefixType = when (prefix.length) {
-			0 -> throw IllegalStateException("Cannot provide PrefixType ")
-			1 -> SHORT_PREFIX.first { it.prefix == prefix }
-			else -> LONG_PREFIX.first { it.prefix == prefix }
-		}
-	}
-}
 
 /**
  * Information about a CLI option.
@@ -93,7 +70,7 @@ enum class PrefixType(val prefix: String) {
  * @property value The value of the provided option. This will be null if it is a flag (boolean option).
  */
 data class OptionInfo(
-	val prefixType: PrefixType,
+	val prefixType: String,
 	val name: String,
 	val value: String?
 ) {
@@ -101,7 +78,7 @@ data class OptionInfo(
 	/**
 	 * @return if the [name] property should be read as a short or long name.
 	 */
-	val isShortName: Boolean = this.prefixType.isShortName
+	val isShortName: Boolean = this.prefixType.length == 1
 
 	val isFlag: Boolean = this.value == null
 }

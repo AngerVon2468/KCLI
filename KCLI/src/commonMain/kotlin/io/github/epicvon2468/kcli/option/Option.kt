@@ -2,8 +2,9 @@ package io.github.epicvon2468.kcli.option
 
 import io.github.epicvon2468.kcli.KCLI
 import io.github.epicvon2468.kcli.exceptions.UninitialisedOptionException
+import io.github.epicvon2468.kcli.util.WriteOnlyModificationMap
 
-import kotlin.reflect.KProperty
+import kotlin.reflect.*
 
 // TODO: Nullable support?
 
@@ -43,4 +44,20 @@ abstract class Option<T : Any?> {
 		thisRef.optionVars += property to this
 		return this
 	}
+}
+
+object OptionProvider {
+
+	val lookup: MutableMap<KType, () -> Option<*>> = WriteOnlyModificationMap(mutableMapOf())
+
+	init {
+		this.lookup += typeOf<String>() to { StringOption() }
+	}
+
+	@Suppress("UNCHECKED_CAST")
+	inline operator fun <reified T> provideDelegate(
+		thisRef: KCLI,
+		property: KProperty<*>
+	): Option<T> = this.lookup[typeOf<T>()]?.invoke() as Option<T>?
+		?: throw NotImplementedError("No option impl found for type ${T::class.simpleName}!")
 }

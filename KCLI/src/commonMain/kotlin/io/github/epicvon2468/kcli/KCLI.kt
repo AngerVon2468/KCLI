@@ -9,7 +9,7 @@ open class KCLI {
 
 	internal val optionVars: MutableMap<KProperty<*>, Option<*>> = mutableMapOf()
 
-	fun option(): Option<String> = StringOption()
+	fun option(): OptionProvider = OptionProvider
 
 	fun init(args: Array<String>) {
 		// Why are for loop indexes immutable in Kotlin???
