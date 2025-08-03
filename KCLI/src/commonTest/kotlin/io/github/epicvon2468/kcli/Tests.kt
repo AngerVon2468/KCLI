@@ -14,6 +14,8 @@ class Tests {
 			val def: Int by this.option()
 
 			val ghi: Boolean by this.option()
+
+			val jkl: String by option()
 		}
 		test.init(emulateProgramArgs("--abc= \"test\" -d3"))
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)

@@ -65,17 +65,34 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 
 	// User functions
 
+	/**
+	 * Sets the default value of this option.
+	 * @param default The value to set the default value to.
+	 * @return This option, for chaining.
+	 */
 	open fun default(default: T): Option<T> {
 		this.default = default
 		return this
 	}
 
+	/**
+	 * Adds or replaces the short names of this option.
+	 * @param names The value(s) to use.
+	 * @param replace Whether the short names should be replaced or added to. Defaults to adding.
+	 * @return This option, for chaining.
+	 */
 	open fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.shortNames.clear()
 		this.shortNames += names
 		return this
 	}
 
+	/**
+	 * Adds or replaces the long names of this option.
+	 * @param names The value(s) to use.
+	 * @param replace Whether the long names should be replaced or added to. Defaults to adding.
+	 * @return This option, for chaining.
+	 */
 	open fun longName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.longNames.clear()
 		this.longNames += names

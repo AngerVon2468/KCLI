@@ -5,6 +5,10 @@ import io.github.epicvon2468.kcli.parser.getInfo
 
 import kotlin.reflect.KProperty
 
+// TODO: WE HAVE A MAJOR PROBLEM
+// Using the delegate of `this.option()` provides the OptionProvider. This doesn't give the user the ability to
+// use any of the chaining function on the returned option...
+
 open class KCLI {
 
 	internal val optionVars: MutableMap<KProperty<*>, Option<*>> = mutableMapOf()
