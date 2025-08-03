@@ -7,15 +7,29 @@ import kotlin.reflect.KProperty
 
 // TODO: Nullable support?
 
+/**
+ * Base class for providing a type impl for a [KCLI] option argument.
+ * @param thisRef The [KCLI] subclass of the [KProperty] that this option is a delegate for.
+ * @param property The [KProperty] that this option is a delegate for.
+ * @property default The default value of this option.
+ * @property value The value of this option. Will be null until [init] is called.
+ * @author EpicVon2468 (Mavity The Madity)
+ */
 abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 
-	var default: T? = null
+	/**
+	 * The default value of this option.
+	 */
+	open var default: T? = null
 
-	var value: T? = null
+	/**
+	 * The value of this option. Will be null until [init] is called.
+	 */
+	open var value: T? = null
 
-	protected val shortNames: MutableList<String> = mutableListOf()
+	protected open val shortNames: MutableList<String> = mutableListOf()
 
-	protected val longNames: MutableList<String> = mutableListOf()
+	protected open val longNames: MutableList<String> = mutableListOf()
 
 	init {
 		thisRef.optionVars += property to this
@@ -24,13 +38,13 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 		this.shortNames += name[0].toString()
 	}
 
-	operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
+	open operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
 
 	fun invalidInput(str: String?): Nothing = throw IllegalStateException("Invalid input: '$str'!")
 
 	abstract fun transform(input: String?): T
 
-	fun init(input: String?) = this::value.set(this.transform(input))
+	open fun init(input: String?) = this::value.set(this.transform(input))
 
 	private fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing =
 		throw UninitialisedOptionException(
@@ -38,23 +52,23 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 				" and had no default value or a nullable default value."
 		)
 
-	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
+	open operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
 		this.value ?: (this.default ?: this.noInit(thisRef, property))
 
 	// User functions
 
-	fun default(default: T): Option<T> {
+	open fun default(default: T): Option<T> {
 		this.default = default
 		return this
 	}
 
-	fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
+	open fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.shortNames.clear()
 		this.shortNames += names
 		return this
 	}
 
-	fun longName(vararg names: String, replace: Boolean = false): Option<T> {
+	open fun longName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.longNames.clear()
 		this.longNames += names
 		return this
