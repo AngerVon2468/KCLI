@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.2.0"
 maven-publish = "0.34.0"
-buildKonfig = "0.15.1"
+buildKonfig = "0.17.1"
 
 [libraries]
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }

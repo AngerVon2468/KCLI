@@ -1,3 +1,5 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -84,6 +86,8 @@ buildkonfig {
 	// BuildKonfig configuration here.
 	// https://github.com/yshrsmz/BuildKonfig#gradle-configuration
 	packageName = projPkg
+	exposeObjectWithName = "Constants"
 	defaultConfigs {
+		buildConfigField(STRING, "VERSION", projVersion)
 	}
 }

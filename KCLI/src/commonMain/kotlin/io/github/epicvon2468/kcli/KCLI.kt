@@ -11,7 +11,7 @@ open class KCLI {
 
 	fun option(): OptionProvider = OptionProvider
 
-	fun init(args: Array<String>) {
+	open fun init(args: Array<String>) {
 		// Why are for loop indexes immutable in Kotlin???
 		val size = args.size
 		var index = 0
