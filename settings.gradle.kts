@@ -1,4 +1,4 @@
-rootProject.name = System.getProperty("projName")
+rootProject.name = "kcli"
 
 pluginManagement {
 	repositories {

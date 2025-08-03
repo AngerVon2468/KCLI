@@ -18,8 +18,8 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 	// Name & value
 	val noPrefix = arg.substringAfter(prefix)
 
-	fun isNextEquals(): Boolean = args[nextIndex] == "="
-	fun isNextEqualsAndValue(): Boolean = args[nextIndex].startsWith('=')
+	fun isNextEqualsSign(): Boolean = args[nextIndex] == "="
+	fun isNextEqualsSignAndValue(): Boolean = args[nextIndex].startsWith('=')
 	fun isNumber(str: String): Boolean = NUMBER_MATCHER matches str
 	fun isQuotedValue(str: String): Boolean =
 		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
@@ -36,7 +36,6 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		else OptionInfo(prefix, noPrefix.take(valueIndex), noPrefix.substring(valueIndex, noPrefix.length)) to index
 	}
 
-	// TODO: Cleanup indentation
 	if ('=' in noPrefix) {
 		// If it ends on '=', we should try to read the next arg as a value
 		// Otherwise, we can return the split name and value of the current arg
@@ -49,10 +48,10 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		} else OptionInfo(prefix, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 	} else if (hasNext) {
 		val next = args[nextIndex]
-		if (isNextEquals()) {
+		if (isNextEqualsSign()) {
 			val nextNext = args[nextNextIndex]
 			return checkNextIsNotArg(nextNext) { OptionInfo(prefix, noPrefix, nextNext) to nextNextIndex }!!
-		} else if (isNextEqualsAndValue()) return OptionInfo(
+		} else if (isNextEqualsSignAndValue()) return OptionInfo(
 			prefix,
 			noPrefix,
 			next.substringAfter('=')

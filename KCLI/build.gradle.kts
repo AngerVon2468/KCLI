@@ -8,11 +8,11 @@ plugins {
 	alias(libs.plugins.buildKonfig)
 }
 
-val projGitHubURL: String = System.getProperty("projGitHubURL")
-val mainPkg: String = System.getProperty("mainPkg")
-val projPkg: String = System.getProperty("projPkg")
-val projVersion: String = System.getProperty("projVersion")
-val projName: String = System.getProperty("projName")
+val projGitHubURL: String by project
+val mainPkg: String by project
+val projPkg: String by project
+val projVersion: String by project
+val projName: String by project
 
 kotlin {
 	// macOS support... never.
@@ -57,25 +57,30 @@ mavenPublishing {
 
 	pom {
 		name = projName
+		inceptionYear = "2025"
 		description = "Kotlin Multiplatform library for CLI parsing."
 		url = projGitHubURL
 
 		licenses {
 			license {
-				name = "APACHE-2.0"
-				url = "https://opensource.org/license/apache-2-0"
+				name = "The Apache License, Version 2.0"
+				url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+				distribution = "https://www.apache.org/licenses/LICENSE-2.0.txt"
 			}
 		}
 
 		developers {
 			developer {
-				id = "" // TODO
-				name = "" // TODO
+				id = "EpicVon2468"
+				name = "EpicVon2468 (Mavity The Madity)"
+				url = projGitHubURL.substringBeforeLast("/")
 			}
 		}
 
 		scm {
 			url = projGitHubURL
+			connection = "scm:git:git://github.com/EpicVon2468/KCLI.git"
+			developerConnection = "scm:git:ssh://git@github.com/EpicVon2468/KCLI.git"
 		}
 	}
 
