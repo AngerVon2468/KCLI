@@ -15,6 +15,8 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 
 	// Prefix info
 	val prefix = chars.takeWhile { it == '-' }.joinToString(separator = "")
+	// Name & value
+	val noPrefix = arg.substringAfter(prefix)
 
 	fun isNextEquals(): Boolean = args[nextIndex] == "="
 	fun isNextEqualsAndValue(): Boolean = args[nextIndex].startsWith('=')
@@ -27,10 +29,14 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		fail: () -> Pair<OptionInfo, Int>? = { exception() },
 		supplier: () -> Pair<OptionInfo, Int>
 	): Pair<OptionInfo, Int>? = if (isQuotedValue(check) || isNumber(check)) supplier() else fail()
+	fun valueInSameArg(): Pair<OptionInfo, Int> {
+		val valueIndex: Int = noPrefix.indexOfFirst { it in '0'..'9' || it == '"' }
+		return if (valueIndex == -1) OptionInfo(prefix, noPrefix, null) to index // Flag
+		// Else, we have a value in the same arg
+		else OptionInfo(prefix, noPrefix.take(valueIndex), noPrefix.substring(valueIndex, noPrefix.length)) to index
+	}
 
 	// TODO: Cleanup indentation
-	// Name & value
-	val noPrefix = arg.substringAfter(prefix)
 	if ('=' in noPrefix) {
 		// If it ends on '=', we should try to read the next arg as a value
 		// Otherwise, we can return the split name and value of the current arg
@@ -53,12 +59,11 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		) to nextIndex
 		else return checkNextIsNotArg(
 			next,
-			// Flag
-			fail = { OptionInfo(prefix, noPrefix, null) to index },
+			fail = { valueInSameArg() },
 			// Whitespace separated args
 			supplier = { OptionInfo(prefix, noPrefix, next) to nextIndex }
 		)!!
-	} else return OptionInfo(prefix, noPrefix, null) to index // Flag
+	} else return valueInSameArg()
 }
 
 val NUMBER_MATCHER = Regex("(^-?\\d*\\.?\\d+)")
