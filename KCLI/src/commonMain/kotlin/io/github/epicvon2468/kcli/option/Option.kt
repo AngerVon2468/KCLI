@@ -13,6 +13,8 @@ import kotlin.reflect.KProperty
  * @param property The [KProperty] that this option is a delegate for.
  * @property default The default value of this option.
  * @property value The value of this option. Will be null until [init] is called.
+ * @property shortNames Short names for the option that can be used as an arg.
+ * @property longNames Long names for the option that can be used as an arg.
  * @author EpicVon2468 (Mavity The Madity)
  */
 abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
@@ -27,8 +29,14 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 	 */
 	open var value: T? = null
 
+	/**
+	 * Short names for the option that can be used as an arg.
+	 */
 	protected open val shortNames: MutableList<String> = mutableListOf()
 
+	/**
+	 * Long names for the option that can be used as an arg.
+	 */
 	protected open val longNames: MutableList<String> = mutableListOf()
 
 	init {
