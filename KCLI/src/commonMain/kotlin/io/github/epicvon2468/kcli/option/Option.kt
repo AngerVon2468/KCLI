@@ -51,6 +51,11 @@ object OptionProvider {
 
 	init {
 		this.lookup += typeOf<String>() to ::StringOption
+		this.lookup += typeOf<Double>() to ::DoubleOption
+		this.lookup += typeOf<Float>() to ::FloatOption
+		this.lookup += typeOf<Short>() to ::ShortOption
+		this.lookup += typeOf<Int>() to ::IntOption
+		this.lookup += typeOf<Long>() to ::LongOption
 	}
 
 	@Suppress("UNCHECKED_CAST")

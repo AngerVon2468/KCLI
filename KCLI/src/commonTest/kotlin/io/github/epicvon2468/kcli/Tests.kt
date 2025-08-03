@@ -8,10 +8,13 @@ class Tests {
 	fun cliTest() {
 		val test = object : KCLI() {
 			val abc: String by this.option()
+
+			val def: Int by this.option()
 		}
-		test.init(arrayOf("--abc=", "\"test\""))
+		test.init(arrayOf("--abc=", "\"test\"", "-d3"))
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)
 		assertEquals("test", test.abc)
+		assertEquals(3, test.def)
 	}
 
 	@Test
