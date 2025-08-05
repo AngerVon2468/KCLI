@@ -1,13 +1,12 @@
 package io.github.epicvon2468.kcli.option
 
-import io.github.epicvon2468.kcli.KCLI
 import io.github.epicvon2468.kcli.util.WriteOnlyModificationMap
 
 import kotlin.reflect.*
 
-object OptionProvider {
+object OptionLookup {
 
-	val lookup: MutableMap<KType, ((KCLI, KProperty<*>) -> Option<*>)> = WriteOnlyModificationMap(mutableMapOf())
+	val lookup: MutableMap<KType, (() -> Option<*>)> = WriteOnlyModificationMap(mutableMapOf())
 
 	init {
 		this.lookup += typeOf<String>() to ::StringOption
@@ -20,9 +19,6 @@ object OptionProvider {
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	inline operator fun <reified T> provideDelegate(
-		thisRef: KCLI,
-		property: KProperty<*>
-	): Option<T> = this.lookup[typeOf<T>()]?.invoke(thisRef, property) as Option<T>?
+	inline fun <reified T> lookup(): Option<T> = this.lookup[typeOf<T>()]?.invoke() as Option<T>?
 		?: throw NotImplementedError("No option impl found for type ${T::class.simpleName}!")
 }

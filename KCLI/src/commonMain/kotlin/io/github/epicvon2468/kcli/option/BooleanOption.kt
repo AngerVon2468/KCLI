@@ -1,10 +1,6 @@
 package io.github.epicvon2468.kcli.option
 
-import io.github.epicvon2468.kcli.KCLI
-
-import kotlin.reflect.KProperty
-
-open class BooleanOption(thisRef: KCLI, property: KProperty<*>) : Option<Boolean>(thisRef, property) {
+open class BooleanOption : OptionImpl<Boolean>() {
 
 	init {
 		if (this.default == null) this.default = false

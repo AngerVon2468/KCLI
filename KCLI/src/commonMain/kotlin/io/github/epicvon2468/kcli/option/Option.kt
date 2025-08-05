@@ -6,71 +6,73 @@ import io.github.epicvon2468.kcli.exceptions.UninitialisedOptionException
 import kotlin.reflect.KProperty
 
 // TODO: Nullable support?
+// TODO: Add separate interface to make actual users only able to access certain functions?
 
 /**
- * Base class for providing a type impl for a [KCLI] option argument.
- * @param thisRef The [KCLI] subclass of the [KProperty] that this option is a delegate for.
- * @param property The [KProperty] that this option is a delegate for.
+ * Base interface for providing a type impl for a [KCLI] option argument.
+ * @property thisRef The [KCLI] subclass of the [KProperty] that this option is a delegate for.
+ * @property property The [KProperty] that this option is a delegate for.
  * @property default The default value of this option.
  * @property value The value of this option. Will be null until [init] is called.
  * @property shortNames Short names for the option that can be used as an arg.
  * @property longNames Long names for the option that can be used as an arg.
  * @author EpicVon2468 (Mavity The Madity)
  */
-abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
+interface Option<T : Any?> {
 
 	/**
 	 * The default value of this option.
 	 */
-	open var default: T? = null
+	var default: T?
 
 	/**
 	 * The value of this option. Will be null until [init] is called.
 	 */
-	open var value: T? = null
+	var value: T?
 
 	/**
 	 * Short names for the option that can be used as an arg.
 	 */
-	protected open val shortNames: MutableList<String> = mutableListOf()
+	val shortNames: MutableList<String>
 
 	/**
 	 * Long names for the option that can be used as an arg.
 	 */
-	protected open val longNames: MutableList<String> = mutableListOf()
+	val longNames: MutableList<String>
 
-	init {
+	fun setup(thisRef: KCLI, property: KProperty<*>) {
 		thisRef.optionVars += property to this
 		val name = property.name
 		this.longNames += name
 		this.shortNames += name[0].toString()
 	}
 
-	open operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
+	operator fun contains(name: String): Boolean = name in this.shortNames || name in this.longNames
 
-	fun invalidInput(str: String?): Nothing = throw IllegalStateException("Invalid input: '$str'!")
+	fun transform(input: String?): T
 
-	abstract fun transform(input: String?): T
+	fun init(input: String?) = this::value.set(this.transform(input))
 
-	open fun init(input: String?) = this::value.set(this.transform(input))
+	fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing
 
-	private fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing =
-		throw UninitialisedOptionException(
-			"Option ${property.name} of KCLI ${thisRef::class.simpleName} wasn't initialised with args," +
-				" and had no default value or a nullable default value."
-		)
-
-	open operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
+	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
 		this.value ?: (this.default ?: this.noInit(thisRef, property))
 
-	// User functions
+	operator fun provideDelegate(
+		thisRef: KCLI,
+		property: KProperty<*>
+	): Option<T> {
+		println("Providing delegate for KCLI subclass '${thisRef::class.simpleName}', property '${property.name}'!")
+		this.setup(thisRef, property)
+		return this
+	}
 
 	/**
 	 * Sets the default value of this option.
 	 * @param default The value to set the default value to.
 	 * @return This option, for chaining.
 	 */
-	open fun default(default: T): Option<T> {
+	fun default(default: T): Option<T> {
 		this.default = default
 		return this
 	}
@@ -81,7 +83,7 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 	 * @param replace Whether the short names should be replaced or added to. Defaults to adding.
 	 * @return This option, for chaining.
 	 */
-	open fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
+	fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.shortNames.clear()
 		this.shortNames += names
 		return this
@@ -93,9 +95,27 @@ abstract class Option<T : Any?>(thisRef: KCLI, property: KProperty<*>) {
 	 * @param replace Whether the long names should be replaced or added to. Defaults to adding.
 	 * @return This option, for chaining.
 	 */
-	open fun longName(vararg names: String, replace: Boolean = false): Option<T> {
+	fun longName(vararg names: String, replace: Boolean = false): Option<T> {
 		if (replace) this.longNames.clear()
 		this.longNames += names
 		return this
 	}
+}
+
+abstract class OptionImpl<T : Any?> : Option<T> {
+
+	override var default: T? = null
+
+	override var value: T? = null
+
+	override val shortNames: MutableList<String> = mutableListOf()
+
+	override val longNames: MutableList<String> = mutableListOf()
+
+	fun invalidInput(str: String?): Nothing = throw IllegalStateException("Invalid input: '$str'!")
+
+	override fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing = throw UninitialisedOptionException(
+		"Option ${property.name} of KCLI ${thisRef::class.simpleName} wasn't initialised with args," +
+			" and had no default value or a nullable default value."
+	)
 }

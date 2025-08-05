@@ -1,37 +1,33 @@
 package io.github.epicvon2468.kcli.option
 
-import io.github.epicvon2468.kcli.KCLI
-
-import kotlin.reflect.KProperty
-
-abstract class NumberOption<T : Number>(thisRef: KCLI, property: KProperty<*>) : Option<T>(thisRef, property) {
+abstract class NumberOption<T : Number> : OptionImpl<T>() {
 
 	abstract fun numberTransform(input: Number): T
 
 	override fun transform(input: String?): T = this.numberTransform(input?.toDouble() ?: this.invalidInput(input))
 }
 
-open class DoubleOption(thisRef: KCLI, property: KProperty<*>) : NumberOption<Double>(thisRef, property) {
+open class DoubleOption : NumberOption<Double>() {
 
 	override fun numberTransform(input: Number): Double = input.toDouble()
 }
 
-open class FloatOption(thisRef: KCLI, property: KProperty<*>) : NumberOption<Float>(thisRef, property) {
+open class FloatOption : NumberOption<Float>() {
 
 	override fun numberTransform(input: Number): Float = input.toFloat()
 }
 
-open class ShortOption(thisRef: KCLI, property: KProperty<*>) : NumberOption<Short>(thisRef, property) {
+open class ShortOption : NumberOption<Short>() {
 
 	override fun numberTransform(input: Number): Short = input.toShort()
 }
 
-open class IntOption(thisRef: KCLI, property: KProperty<*>) : NumberOption<Int>(thisRef, property) {
+open class IntOption : NumberOption<Int>() {
 
 	override fun numberTransform(input: Number): Int = input.toInt()
 }
 
-open class LongOption(thisRef: KCLI, property: KProperty<*>) : NumberOption<Long>(thisRef, property) {
+open class LongOption : NumberOption<Long>() {
 
 	override fun numberTransform(input: Number): Long = input.toLong()
 }
