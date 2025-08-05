@@ -6,7 +6,7 @@ import kotlin.reflect.*
 
 object OptionLookup {
 
-	val lookup: MutableMap<KType, (() -> Option<*>)> = WriteOnlyModificationMap(mutableMapOf())
+	val lookup: MutableMap<KType, (() -> Option<*>)> = WriteOnlyModificationMap(hashMapOf())
 
 	init {
 		this.lookup += typeOf<String>() to ::StringOption
@@ -21,4 +21,6 @@ object OptionLookup {
 	@Suppress("UNCHECKED_CAST")
 	inline fun <reified T> lookup(): Option<T> = this.lookup[typeOf<T>()]?.invoke() as Option<T>?
 		?: throw NotImplementedError("No option impl found for type ${T::class.simpleName}!")
+
+	inline fun <reified T> lookupAccess(): OptionAccess<T> = this.lookup()
 }

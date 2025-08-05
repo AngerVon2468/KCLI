@@ -3,6 +3,7 @@ package io.github.epicvon2468.kcli.option
 import io.github.epicvon2468.kcli.KCLI
 import io.github.epicvon2468.kcli.exceptions.UninitialisedOptionException
 
+import kotlin.properties.*
 import kotlin.reflect.KProperty
 
 // TODO: Nullable support?
@@ -10,15 +11,13 @@ import kotlin.reflect.KProperty
 
 /**
  * Base interface for providing a type impl for a [KCLI] option argument.
- * @property thisRef The [KCLI] subclass of the [KProperty] that this option is a delegate for.
- * @property property The [KProperty] that this option is a delegate for.
  * @property default The default value of this option.
  * @property value The value of this option. Will be null until [init] is called.
  * @property shortNames Short names for the option that can be used as an arg.
  * @property longNames Long names for the option that can be used as an arg.
  * @author EpicVon2468 (Mavity The Madity)
  */
-interface Option<T : Any?> {
+interface Option<T : Any?> : OptionAccess<T> {
 
 	/**
 	 * The default value of this option.
@@ -55,27 +54,48 @@ interface Option<T : Any?> {
 
 	fun noInit(thisRef: KCLI, property: KProperty<*>): Nothing
 
-	operator fun getValue(thisRef: KCLI, property: KProperty<*>): T =
+	override fun getValue(thisRef: KCLI, property: KProperty<*>): T =
 		this.value ?: (this.default ?: this.noInit(thisRef, property))
 
-	operator fun provideDelegate(
+	override fun provideDelegate(
 		thisRef: KCLI,
 		property: KProperty<*>
 	): Option<T> {
-		println("Providing delegate for KCLI subclass '${thisRef::class.simpleName}', property '${property.name}'!")
 		this.setup(thisRef, property)
 		return this
 	}
+
+	override fun default(default: T): Option<T> {
+		this.default = default
+		return this
+	}
+
+	override fun shortName(vararg names: String, replace: Boolean /* = false */): Option<T> {
+		if (replace) this.shortNames.clear()
+		this.shortNames += names
+		return this
+	}
+
+	override fun longName(vararg names: String, replace: Boolean /* = false */): Option<T> {
+		if (replace) this.longNames.clear()
+		this.longNames += names
+		return this
+	}
+}
+
+/**
+ * Interface to provide user access to only the strictly needed API functions and basic functionality.
+ *
+ * All other functions and properties for internal use are found in [Option].
+ */
+interface OptionAccess<T : Any?> : ReadOnlyProperty<KCLI, T>, PropertyDelegateProvider<KCLI, OptionAccess<T>> {
 
 	/**
 	 * Sets the default value of this option.
 	 * @param default The value to set the default value to.
 	 * @return This option, for chaining.
 	 */
-	fun default(default: T): Option<T> {
-		this.default = default
-		return this
-	}
+	fun default(default: T): OptionAccess<T>
 
 	/**
 	 * Adds or replaces the short names of this option.
@@ -83,11 +103,7 @@ interface Option<T : Any?> {
 	 * @param replace Whether the short names should be replaced or added to. Defaults to adding.
 	 * @return This option, for chaining.
 	 */
-	fun shortName(vararg names: String, replace: Boolean = false): Option<T> {
-		if (replace) this.shortNames.clear()
-		this.shortNames += names
-		return this
-	}
+	fun shortName(vararg names: String, replace: Boolean = false): OptionAccess<T>
 
 	/**
 	 * Adds or replaces the long names of this option.
@@ -95,11 +111,7 @@ interface Option<T : Any?> {
 	 * @param replace Whether the long names should be replaced or added to. Defaults to adding.
 	 * @return This option, for chaining.
 	 */
-	fun longName(vararg names: String, replace: Boolean = false): Option<T> {
-		if (replace) this.longNames.clear()
-		this.longNames += names
-		return this
-	}
+	fun longName(vararg names: String, replace: Boolean = false): OptionAccess<T>
 }
 
 abstract class OptionImpl<T : Any?> : Option<T> {
