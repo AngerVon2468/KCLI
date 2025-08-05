@@ -6,8 +6,7 @@ import io.github.epicvon2468.kcli.exceptions.UninitialisedOptionException
 import kotlin.properties.*
 import kotlin.reflect.KProperty
 
-// TODO: Nullable support?
-// TODO: Add separate interface to make actual users only able to access certain functions?
+// TODO: In future, support strings without quotes if in separate args?
 
 /**
  * Base interface for providing a type impl for a [KCLI] option argument.

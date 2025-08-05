@@ -15,15 +15,35 @@ class Tests {
 
 			val ghi: Boolean by this.option()
 
-			val jkl: String by this.option()
+			val jkl: String by this.option<String>()
+				.shortName("b", "c") // Seems like type is lost after the first function call... I can live with this.
+
+			val mno: Int by this.option<Int>()
+				.shortName("l", replace = true)
 		}
-		test.init(emulateProgramArgs("--abc= \"test\" -d3"))
+
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)
+
+		test.init(emulateProgramArgs("--abc= \"test\" -d3"))
 		assertEquals("test", test.abc)
 		assertEquals(3, test.def)
 		assertEquals(false, test.ghi)
+
 		test.init(emulateProgramArgs("--ghi")) // This shouldn't be done outside of tests. I haven't made values reset
 		assertEquals(true, test.ghi)
+
+		test.init(emulateProgramArgs("-b\"hi\""))
+		assertEquals("hi", test.jkl)
+
+		test.init(emulateProgramArgs("-l -6 -c \"blah\""))
+		assertEquals(-6, test.mno)
+		assertEquals("blah", test.jkl)
+
+		test.init(emulateProgramArgs("-l 6"))
+		assertEquals(6, test.mno)
+
+		test.init(emulateProgramArgs("-c \"hello\""))
+		assertEquals("hello", test.jkl)
 	}
 
 	@Test

@@ -1,6 +1,8 @@
 package io.github.epicvon2468.kcli.parser
 
 // TODO: Support PowerShell `/` notation?
+// TODO: FATAL STRING FLAW! WE DON'T KEEP SCANNING TO CHECK IF THE STRING IS NOT JUST ONE WORD!
+
 /**
  * For an option with name "example" and type Int, the following are valid inputs:
  *
