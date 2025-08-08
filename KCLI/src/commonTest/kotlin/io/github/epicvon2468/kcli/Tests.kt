@@ -46,6 +46,11 @@ class Tests {
 		assertEquals(-6, test.mno)
 		assertEquals("blah", test.jkl)
 
+		test.init(emulateProgramArgs("-l-9 -d7 -j \"halb\""))
+		assertEquals(-9, test.mno)
+		assertEquals(7, test.def)
+		assertEquals("halb", test.jkl)
+
 		test.init(emulateProgramArgs("-l 6"))
 		assertEquals(6, test.mno)
 

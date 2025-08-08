@@ -34,7 +34,6 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 			val arg = args[i]
 			if (isTest) sb.append(" ")
 			sb.append(arg)
-			println("For first: '$first', at index $index of ${args.size}, we have: '$arg'. Current sb is: '$sb'.")
 			if (arg.endsWith('"') || arg.endsWith('\'')) return sb.toString() to i
 		}
 		throw IllegalStateException("Opened quotation mark but didn't close!")
@@ -61,7 +60,6 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		else {
 			val name = input.take(valueIndex)
 			val value = input.substring(valueIndex)
-			println("Name: '$name', value: '$value'")
 			if (!isQuotedValue(value) && (value.startsWith('"') || value.startsWith('\''))) {
 				val (actualValue, index) = consumeUntilEndQuote(value, index)
 				OptionInfo(prefix, name, actualValue) to index
