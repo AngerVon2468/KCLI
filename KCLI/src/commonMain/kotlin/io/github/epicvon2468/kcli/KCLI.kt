@@ -14,6 +14,7 @@ fun KCLI.init(args: Array<String>) {
 	// Why are for loop indexes immutable in Kotlin???
 	val size = args.size
 	var index = 0
+	println("Args: ${args.joinToString()}")
 	while (index < size) {
 		val arg = args[index]
 		val (optionInfo, newIndex) = getInfo(index, arg, args, index + 1 < size)

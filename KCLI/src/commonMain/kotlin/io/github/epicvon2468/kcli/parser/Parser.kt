@@ -53,13 +53,21 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		}
 		return if (isQuoted || isNumber(check)) supplier(check, index) else fail(check, index)
 	}
-	fun valueInSameArg(): Pair<OptionInfo, Int> {
-		val valueIndex: Int = noPrefix.substring(1).indexOfFirst {
+	fun valueInSameArg(input: String, index: Int): Pair<OptionInfo, Int> {
+		val valueIndex: Int = input.substring(1).indexOfFirst {
 			it in '0'..'9' || it == '"' || it == '\'' || it == '-'
 		}.let { if (it == -1) it else it + 1 } // If the value was -1 (not found), and we added 1, we'd have 0...
-		return if (valueIndex == -1) OptionInfo(prefix, noPrefix, null) to index // Flag
+		return if (valueIndex == -1) OptionInfo(prefix, input, null) to index // Flag
 		// Else, we have a value in the same arg
-		else OptionInfo(prefix, noPrefix.take(valueIndex), noPrefix.substring(valueIndex, noPrefix.length)) to index
+		else {
+			val name = input.take(valueIndex)
+			val value = input.substring(valueIndex)
+			println("Name: '$name', value: '$value'")
+			if (!isQuotedValue(value) && (value.startsWith('"') || value.startsWith('\''))) {
+				val (actualValue, index) = consumeUntilEndQuote(value, index)
+				OptionInfo(prefix, name, actualValue) to index
+			} else OptionInfo(prefix, name, value) to index
+		}
 	}
 
 	if ('=' in noPrefix) {
@@ -80,23 +88,23 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		else checkIsNotArg(
 			next,
 			nIndex,
-			fail = { value: String, index: Int -> valueInSameArg() },
+			fail = ::valueInSameArg,
 			// Whitespace separated args
 			supplier = { value: String, index: Int -> OptionInfo(prefix, noPrefix, value) to index }
 		)!!
-	} else return valueInSameArg()
+	} else return valueInSameArg(noPrefix, index)
 }
 
 val NUMBER_MATCHER = Regex("(^-?\\d*\\.?\\d+)")
 
 /**
  * Information about a CLI option.
- * @property prefixType The kind of prefix used by this arg.
+ * @property prefix The prefix used by this arg.
  * @property name The name of the arg. May be short or long name depending on [isShortName].
  * @property value The value of the provided option. This will be null if it is a flag (boolean option).
  */
 data class OptionInfo(
-	val prefixType: String,
+	val prefix: String,
 	val name: String,
 	val value: String?
 ) {
@@ -104,7 +112,7 @@ data class OptionInfo(
 	/**
 	 * @return if the [name] property should be read as a short or long name.
 	 */
-	val isShortName: Boolean = this.prefixType.length == 1
+	val isShortName: Boolean = this.prefix.length == 1
 
 	val isFlag: Boolean = this.value == null
 }
