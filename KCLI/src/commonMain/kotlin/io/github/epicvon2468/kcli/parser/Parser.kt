@@ -29,21 +29,20 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
 	fun consumeUntilEndQuote(first: String, index: Int): Pair<String, Int> {
-		val sb = StringBuilder()
-		sb.append(first)
+		val sb = StringBuilder(first)
 		for (i in (index + 1)..<args.size) {
 			val arg = args[i]
 			if (isTest) sb.append(" ")
 			sb.append(arg)
 			println("For first: '$first', at index $index of ${args.size}, we have: '$arg'. Current sb is: '$sb'.")
-			if (arg.endsWith('\"') || arg.endsWith('\'')) return sb.toString() to i
+			if (arg.endsWith('"') || arg.endsWith('\'')) return sb.toString() to i
 		}
 		throw IllegalStateException("Opened quotation mark but didn't close!")
 	}
 	fun checkIsNotArg(
 		check: String,
 		index: Int,
-		fail: (String, Int) -> Pair<OptionInfo, Int>? = { value: String, index: Int -> exception() },
+		fail: (String, Int) -> Pair<OptionInfo, Int>? = { _, _ -> exception() },
 		supplier: (String, Int) -> Pair<OptionInfo, Int>
 	): Pair<OptionInfo, Int>? {
 		val isQuoted = isQuotedValue(check)
@@ -88,7 +87,7 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		else checkIsNotArg(
 			next,
 			nIndex,
-			fail = ::valueInSameArg,
+			fail = { _, _ -> valueInSameArg(noPrefix, index) },
 			// Whitespace separated args
 			supplier = { value: String, index: Int -> OptionInfo(prefix, noPrefix, value) to index }
 		)!!
