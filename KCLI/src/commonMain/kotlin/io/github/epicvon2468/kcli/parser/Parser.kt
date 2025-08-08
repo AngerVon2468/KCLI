@@ -3,6 +3,8 @@ package io.github.epicvon2468.kcli.parser
 // TODO: Support PowerShell `/` notation?
 // TODO: FATAL STRING FLAW! WE DON'T KEEP SCANNING TO CHECK IF THE STRING IS NOT JUST ONE WORD!
 
+internal var isTest: Boolean = false
+
 /**
  * For an option with name "example" and type Int, the following are valid inputs:
  *
@@ -26,14 +28,30 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 	fun isQuotedValue(str: String): Boolean =
 		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
+	fun consumeUntilEndQuote(first: String, index: Int): Pair<String, Int> {
+		val sb = StringBuilder()
+		sb.append(first)
+		for (i in (index + 1)..<args.size) {
+			val arg = args[i]
+			if (isTest) sb.append(" ")
+			sb.append(arg)
+			println("For first: '$first', at index $index of ${args.size}, we have: '$arg'. Current sb is: '$sb'.")
+			if (arg.endsWith('\"') || arg.endsWith('\'')) return sb.toString() to i
+		}
+		throw IllegalStateException("Opened quotation mark but didn't close!")
+	}
 	fun checkIsNotArg(
 		check: String,
-		fail: (String) -> Pair<OptionInfo, Int>? = { exception() },
-		supplier: (String) -> Pair<OptionInfo, Int>
+		index: Int,
+		fail: (String, Int) -> Pair<OptionInfo, Int>? = { value: String, index: Int -> exception() },
+		supplier: (String, Int) -> Pair<OptionInfo, Int>
 	): Pair<OptionInfo, Int>? {
-		//val isQuoted = isQuotedValue(check)
-		//if (!isQuoted && (check.startsWith('"') || check.startsWith('\''))) return null
-		return if (isQuotedValue(check) || isNumber(check)) supplier(check) else fail(check)
+		val isQuoted = isQuotedValue(check)
+		if (!isQuoted && (check.startsWith('"') || check.startsWith('\''))) {
+			val (str, i) = consumeUntilEndQuote(check, index)
+			return supplier(str, i)
+		}
+		return if (isQuoted || isNumber(check)) supplier(check, index) else fail(check, index)
 	}
 	fun valueInSameArg(): Pair<OptionInfo, Int> {
 		val valueIndex: Int = noPrefix.substring(1).indexOfFirst {
@@ -49,17 +67,22 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		// Otherwise, we can return the split name and value of the current arg
 		return if (noPrefix.indexOf('=') == noPrefix.lastIndex) { // How was this working before??? What???
 			if (!hasNext) exception()
-			return checkIsNotArg(args[nIndex]) { OptionInfo(prefix, noPrefix.substringBeforeLast("="), it) to nIndex }!!
+			return checkIsNotArg(args[nIndex], nIndex) { value: String, index: Int ->
+				OptionInfo(prefix, noPrefix.substringBeforeLast("="), value) to index
+			}!!
 		} else OptionInfo(prefix, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 	} else if (hasNext) {
 		val next = args[nIndex]
-		return if (isNextEqualsSign()) checkIsNotArg(args[nNIndex]) { OptionInfo(prefix, noPrefix, it) to nNIndex }!!
+		return if (isNextEqualsSign()) checkIsNotArg(args[nNIndex], nNIndex) { value: String, index: Int ->
+			OptionInfo(prefix, noPrefix, value) to index
+		}!!
 		else if (isNextEqualsSignAndValue()) OptionInfo(prefix, noPrefix, next.substringAfter('=')) to nIndex
 		else checkIsNotArg(
 			next,
-			fail = { valueInSameArg() },
+			nIndex,
+			fail = { value: String, index: Int -> valueInSameArg() },
 			// Whitespace separated args
-			supplier = { OptionInfo(prefix, noPrefix, it) to nIndex }
+			supplier = { value: String, index: Int -> OptionInfo(prefix, noPrefix, value) to index }
 		)!!
 	} else return valueInSameArg()
 }

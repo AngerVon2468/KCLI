@@ -1,5 +1,7 @@
 package io.github.epicvon2468.kcli
 
+import io.github.epicvon2468.kcli.parser.isTest
+
 import kotlin.test.*
 
 class TestKCLI : KCLI() {
@@ -18,6 +20,8 @@ class TestKCLI : KCLI() {
 }
 
 class Tests {
+
+	@BeforeTest fun preTests() = ::isTest.set(true)
 
 	fun emulateProgramArgs(args: String): Array<String> = args.split(' ').toTypedArray()
 
@@ -56,8 +60,8 @@ class Tests {
 	fun cliTestStrings() {
 		val test1 = TestKCLI()
 
-		test1.init(emulateProgramArgs("--abc\"test\""))
-		assertEquals("test", test1.abc)
+		test1.init(emulateProgramArgs("--abc= \"multiWord testing\""))
+		assertEquals("multiWord testing", test1.abc)
 
 		test1.init(emulateProgramArgs("-b\"multi word test\""))
 		assertEquals("multi word test", test1.jkl)
