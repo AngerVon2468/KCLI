@@ -47,6 +47,9 @@ class Tests {
 
 		test.init(emulateProgramArgs("-c \"hello\""))
 		assertEquals("hello", test.jkl)
+
+		test.init(emulateProgramArgs("-b= \"howInTheNameOfAllThingsUnholyWasThisWorkingBefore\""))
+		assertEquals("howInTheNameOfAllThingsUnholyWasThisWorkingBefore", test.jkl)
 	}
 
 	@Test

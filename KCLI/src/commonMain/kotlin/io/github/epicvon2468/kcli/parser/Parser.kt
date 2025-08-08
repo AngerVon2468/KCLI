@@ -31,6 +31,8 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		fail: (String) -> Pair<OptionInfo, Int>? = { exception() },
 		supplier: (String) -> Pair<OptionInfo, Int>
 	): Pair<OptionInfo, Int>? {
+		//val isQuoted = isQuotedValue(check)
+		//if (!isQuoted && (check.startsWith('"') || check.startsWith('\''))) return null
 		return if (isQuotedValue(check) || isNumber(check)) supplier(check) else fail(check)
 	}
 	fun valueInSameArg(): Pair<OptionInfo, Int> {
@@ -45,7 +47,7 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 	if ('=' in noPrefix) {
 		// If it ends on '=', we should try to read the next arg as a value
 		// Otherwise, we can return the split name and value of the current arg
-		return if (noPrefix.indexOf('=') != noPrefix.length) {
+		return if (noPrefix.indexOf('=') == noPrefix.lastIndex) { // How was this working before??? What???
 			if (!hasNext) exception()
 			return checkIsNotArg(args[nIndex]) { OptionInfo(prefix, noPrefix.substringBeforeLast("="), it) to nIndex }!!
 		} else OptionInfo(prefix, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index

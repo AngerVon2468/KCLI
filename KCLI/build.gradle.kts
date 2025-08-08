@@ -53,6 +53,7 @@ kotlin {
 // https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-publish-libraries.html
 mavenPublishing {
 	publishToMavenCentral()
+	signAllPublications()
 	coordinates(mainPkg, projName, projVersion)
 
 	pom {
@@ -83,8 +84,6 @@ mavenPublishing {
 			developerConnection = "scm:git:ssh://git@github.com/EpicVon2468/KCLI.git"
 		}
 	}
-
-	if (project.hasProperty("signing.keyId")) signAllPublications()
 }
 
 buildkonfig {
