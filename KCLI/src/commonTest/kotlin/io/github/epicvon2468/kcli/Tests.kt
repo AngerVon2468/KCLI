@@ -2,25 +2,28 @@ package io.github.epicvon2468.kcli
 
 import kotlin.test.*
 
+class TestKCLI : KCLI() {
+
+	val abc: String by this.option()
+
+	val def: Int by this.option()
+
+	val ghi: Boolean by this.option()
+
+	val jkl: String by this.option<String>()
+		.shortName("b", "c") // Seems like type is lost after the first function call... I can live with this.
+
+	val mno: Int by this.option<Int>()
+		.shortName("l", replace = true)
+}
+
 class Tests {
 
-	fun emulateProgramArgs(fakeArgs: String): Array<String> = fakeArgs.split(' ').toTypedArray()
+	fun emulateProgramArgs(args: String): Array<String> = args.split(' ').toTypedArray()
 
 	@Test
 	fun cliTest() {
-		val test = object : KCLI() {
-			val abc: String by this.option()
-
-			val def: Int by this.option()
-
-			val ghi: Boolean by this.option()
-
-			val jkl: String by this.option<String>()
-				.shortName("b", "c") // Seems like type is lost after the first function call... I can live with this.
-
-			val mno: Int by this.option<Int>()
-				.shortName("l", replace = true)
-		}
+		val test = TestKCLI()
 
 		test.optionVars.keys.joinToString(prefix = "[", postfix = "]") { it.name }.also(::println)
 
@@ -44,6 +47,17 @@ class Tests {
 
 		test.init(emulateProgramArgs("-c \"hello\""))
 		assertEquals("hello", test.jkl)
+	}
+
+	@Test
+	fun cliTestStrings() {
+		val test1 = TestKCLI()
+
+		test1.init(emulateProgramArgs("--abc\"test\""))
+		assertEquals("test", test1.abc)
+
+		test1.init(emulateProgramArgs("-b\"multi word test\""))
+		assertEquals("multi word test", test1.jkl)
 	}
 
 	@Test

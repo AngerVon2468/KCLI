@@ -18,6 +18,7 @@ fun KCLI.init(args: Array<String>) {
 		val arg = args[index]
 		val (optionInfo, newIndex) = getInfo(index, arg, args, index + 1 < size)
 		index = newIndex // We want to make sure we're not going over values we already used.
+		println("OptionInfo: $optionInfo")
 		val option = this.optionVars.values.single { optionInfo.name in it }
 		option.init(optionInfo.value)
 		index++

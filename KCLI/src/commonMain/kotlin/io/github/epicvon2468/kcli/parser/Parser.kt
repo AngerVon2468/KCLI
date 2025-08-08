@@ -21,10 +21,9 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 	val noPrefix = arg.substringAfter(prefix)
 
 	fun isNextEqualsSign(): Boolean = args[nextIndex] == "="
-	fun isNextEqualsSignAndValue(): Boolean = args[nextIndex].startsWith('=')
+	fun isNextEqualsSignAndValue(): Boolean = args[nextIndex].startsWith('=') && !isNextEqualsSign()
 	fun isNumber(str: String): Boolean = NUMBER_MATCHER matches str
-	fun isQuotedValue(str: String): Boolean =
-		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
+	fun isQuotedValue(str: String): Boolean = (str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
 	fun checkNextIsNotArg(
 		check: String,
@@ -32,7 +31,9 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		supplier: () -> Pair<OptionInfo, Int>
 	): Pair<OptionInfo, Int>? = if (isQuotedValue(check) || isNumber(check)) supplier() else fail()
 	fun valueInSameArg(): Pair<OptionInfo, Int> {
-		val valueIndex: Int = noPrefix.indexOfFirst { it in '0'..'9' || it == '"' }
+		val valueIndex: Int = noPrefix.substring(1).indexOfFirst {
+			it in '0'..'9' || it == '"' || it == '\'' || it == '-'
+		}.let { if (it == -1) it else it + 1 } // If the value was -1 (not found), and we added 1, we'd have 0...
 		return if (valueIndex == -1) OptionInfo(prefix, noPrefix, null) to index // Flag
 		// Else, we have a value in the same arg
 		else OptionInfo(prefix, noPrefix.take(valueIndex), noPrefix.substring(valueIndex, noPrefix.length)) to index
