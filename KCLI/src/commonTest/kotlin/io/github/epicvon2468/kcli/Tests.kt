@@ -70,6 +70,9 @@ class Tests {
 
 		test1.init(emulateProgramArgs("-b\"multi word test\""))
 		assertEquals("multi word test", test1.jkl)
+
+		test1.init(emulateProgramArgs("-j\"test\""))
+		assertEquals("test", test1.jkl)
 	}
 
 	@Test
