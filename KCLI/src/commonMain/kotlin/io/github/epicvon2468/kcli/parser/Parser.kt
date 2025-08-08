@@ -9,27 +9,30 @@ package io.github.epicvon2468.kcli.parser
  * `-e1`, `-e 1`, `-e=1`, `-e = 1`,
  *
  * `--example1` `--example 1`, `--example=1`, `--example= 1`, `--example =1`, `--example = 1`
+ * @return The latest [OptionInfo] parsed from the [args], and the last index that was used by the parser.
  */
 fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pair<OptionInfo, Int> {
-	val chars = arg.toCharArray()
-	val nextIndex = index + 1
-	val nextNextIndex = nextIndex + 1
+	val nIndex = index + 1 // nextIndex
+	val nNIndex = nIndex + 1 // nextNextIndex
 
 	// Prefix info
-	val prefix = chars.takeWhile { it == '-' }.joinToString(separator = "")
+	val prefix = arg.takeWhile { it == '-' }
 	// Name & value
 	val noPrefix = arg.substringAfter(prefix)
 
-	fun isNextEqualsSign(): Boolean = args[nextIndex] == "="
-	fun isNextEqualsSignAndValue(): Boolean = args[nextIndex].startsWith('=') && !isNextEqualsSign()
+	fun isNextEqualsSign(): Boolean = args[nIndex] == "="
+	fun isNextEqualsSignAndValue(): Boolean = args[nIndex].startsWith('=') && !isNextEqualsSign()
 	fun isNumber(str: String): Boolean = NUMBER_MATCHER matches str
-	fun isQuotedValue(str: String): Boolean = (str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
+	fun isQuotedValue(str: String): Boolean =
+		(str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))
 	fun exception(): Nothing = throw IllegalStateException("Could not parse args! Check your formatting and layout!")
-	fun checkNextIsNotArg(
+	fun checkIsNotArg(
 		check: String,
-		fail: () -> Pair<OptionInfo, Int>? = { exception() },
-		supplier: () -> Pair<OptionInfo, Int>
-	): Pair<OptionInfo, Int>? = if (isQuotedValue(check) || isNumber(check)) supplier() else fail()
+		fail: (String) -> Pair<OptionInfo, Int>? = { exception() },
+		supplier: (String) -> Pair<OptionInfo, Int>
+	): Pair<OptionInfo, Int>? {
+		return if (isQuotedValue(check) || isNumber(check)) supplier(check) else fail(check)
+	}
 	fun valueInSameArg(): Pair<OptionInfo, Int> {
 		val valueIndex: Int = noPrefix.substring(1).indexOfFirst {
 			it in '0'..'9' || it == '"' || it == '\'' || it == '-'
@@ -44,26 +47,17 @@ fun getInfo(index: Int, arg: String, args: Array<String>, hasNext: Boolean): Pai
 		// Otherwise, we can return the split name and value of the current arg
 		return if (noPrefix.indexOf('=') != noPrefix.length) {
 			if (!hasNext) exception()
-			val next = args[nextIndex]
-			return checkNextIsNotArg(next) {
-				OptionInfo(prefix, noPrefix.substringBeforeLast("="), next) to nextIndex
-			}!!
+			return checkIsNotArg(args[nIndex]) { OptionInfo(prefix, noPrefix.substringBeforeLast("="), it) to nIndex }!!
 		} else OptionInfo(prefix, noPrefix.substringBefore('='), noPrefix.substringAfter('=')) to index
 	} else if (hasNext) {
-		val next = args[nextIndex]
-		if (isNextEqualsSign()) {
-			val nextNext = args[nextNextIndex]
-			return checkNextIsNotArg(nextNext) { OptionInfo(prefix, noPrefix, nextNext) to nextNextIndex }!!
-		} else if (isNextEqualsSignAndValue()) return OptionInfo(
-			prefix,
-			noPrefix,
-			next.substringAfter('=')
-		) to nextIndex
-		else return checkNextIsNotArg(
+		val next = args[nIndex]
+		return if (isNextEqualsSign()) checkIsNotArg(args[nNIndex]) { OptionInfo(prefix, noPrefix, it) to nNIndex }!!
+		else if (isNextEqualsSignAndValue()) OptionInfo(prefix, noPrefix, next.substringAfter('=')) to nIndex
+		else checkIsNotArg(
 			next,
 			fail = { valueInSameArg() },
 			// Whitespace separated args
-			supplier = { OptionInfo(prefix, noPrefix, next) to nextIndex }
+			supplier = { OptionInfo(prefix, noPrefix, it) to nIndex }
 		)!!
 	} else return valueInSameArg()
 }
